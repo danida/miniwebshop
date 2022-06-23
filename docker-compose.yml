@@ -1,0 +1,31 @@
+version: "3.2"
+services:
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    ports:
+        - 5672:5672
+        - 15672:15672
+
+  orders:
+    image: node:lts
+    depends_on:
+      - rabbitmq
+    volumes:
+      - ./apps/orders:/
+    command: sh -c "cd /app && npm run start:dev"
+      
+  payments:
+    image: php:8.1.7-fpm
+    depends_on:
+      - rabbitmq
+    volumes:
+      - ./apps/payments:/app
+    command: sh -c "cd /app && php artisan rabbitmq:consume"
+      
+  shippings:
+    image: python:3.9-slim-buster
+    depends_on:
+      - rabbitmq
+    volumes:
+      - ./apps/shippings:/app
+    command: sh -c "cd /app && . ./venv/bin/activate && pip3 install -r ./requirements.txt && python3 ./src/main.py"
