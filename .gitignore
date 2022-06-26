@@ -4,3 +4,5 @@ tmp
 /**/vendor
 /**/__pycache__
 /**/.vscode
+
+.env

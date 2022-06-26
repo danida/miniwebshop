@@ -20,12 +20,13 @@ class RabbitMQConsume extends Command
 
         $publishers = [
             \App\RabbitMQ\Publishers\PaymentSuccessPublisher::class,
+            \App\RabbitMQ\Publishers\PaymentFailedPublisher::class,
         ];
 
         $consumer = new RabbitMQConsumerService(
             [
-                "host" => "rabbitmq",
-                "port" => 5672,
+                "host" => env("RABBITMQ_HOST"),
+                "port" => env("RABBITMQ_PORT"),
                 "user" => "guest",
                 "password" => "guest",
             ],

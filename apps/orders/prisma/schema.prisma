@@ -8,12 +8,13 @@ datasource db {
 }
 
 model Order {
-  id        String         @id @default(uuid())
-  timestamp DateTime
-  userId    String
-  cartId    String         @default("")
-  products  OrderProduct[]
-  state     String
+  id         String         @id @default(uuid())
+  timestamp  DateTime
+  userId     String
+  cartId     String         @default("")
+  totalPrice Int
+  products   OrderProduct[]
+  state      String
 }
 
 model OrderProduct {

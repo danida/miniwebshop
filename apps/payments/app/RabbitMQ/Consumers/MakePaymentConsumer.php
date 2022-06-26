@@ -6,6 +6,7 @@ use App\RabbitMQ\ConsumerContract;
 use App\RabbitMQ\Consumer;
 use App\RabbitMQ\Publishers\PaymentSuccessPublisher;
 use App\Models\Payment;
+use App\RabbitMQ\Publishers\PaymentFailedPublisher;
 use App\Services\PaymentService;
 use PhpAmqpLib\Message\AMQPMessage;
 
@@ -25,21 +26,29 @@ class MakePaymentConsumer extends Consumer implements ConsumerContract
         print("MakePaymentConsumer\n");
         print_r($data);
 
-        $this->payment->payWithCard(
+        $paymentResult = $this->payment->payWithCard(
             $data["cardDetails"]["number"],
             $data["cardDetails"]["cvc"],
-            $data["cardDetails"]["expiry"]
+            $data["cardDetails"]["expiry"],
+            $data["totalPrice"],
         );
 
-        $payment = new Payment();
-        $payment->orderId = $data["orderId"];
-        $payment->totalPrice = $data["totalPrice"];
-        $payment->save();
+        if ($paymentResult) {
+            $payment = new Payment();
+            $payment->orderId = $data["orderId"];
+            $payment->totalPrice = $data["totalPrice"];
+            $payment->save();
 
-        PaymentSuccessPublisher::publish([
-            "orderId" => $data["orderId"],
-            "paymentId" => $payment->id,
-        ]);
+            PaymentSuccessPublisher::publish([
+                "orderId" => $data["orderId"],
+                "paymentId" => $payment->id,
+            ]);
+        }
+        else {
+            PaymentFailedPublisher::publish([
+                "orderId" => $data["orderId"],
+            ]);
+        }
 
         $message->ack();
     }

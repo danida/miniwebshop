@@ -1,5 +1,6 @@
 import json
 import pika
+import os
 from typing import Callable
 
 exchanges = [
@@ -30,7 +31,7 @@ def register_consumer(queue: str, callback: Callable):
 
 
 # Creating connection
-connection = pika.BlockingConnection(pika.ConnectionParameters(host='rabbitmq'))
+connection = pika.BlockingConnection(pika.ConnectionParameters(host=os.environ["RABBITMQ_HOST"], port=os.environ["RABBITMQ_PORT"]))
 channel = connection.channel()
 channel.basic_qos(prefetch_count=1)
 

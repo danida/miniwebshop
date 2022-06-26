@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Order } from '@prisma/client';
+import { Order, OrderProduct } from '@prisma/client';
 import { PrismaService } from '../prisma';
 import { CreateOrderDTO, UpdateOrderDTO } from './dto/create-order.dto';
 
@@ -14,6 +14,7 @@ export class OrderService {
         userId: data.userId,
         cartId: data.cartId,
         state: data.state,
+        totalPrice: this.getTotalPrice(data.products),
         products: {
           create: data.products.map((_product) => ({
             productId: _product.productId,
@@ -45,5 +46,11 @@ export class OrderService {
     });
 
     return;
+  }
+
+  private getTotalPrice(products: Omit<OrderProduct, 'id'>[]): number {
+    return products.reduce((accu, curr, idx) => {
+      return accu + curr.price * curr.quantity;
+    }, 0);
   }
 }

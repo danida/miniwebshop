@@ -37,7 +37,7 @@ export class CreateOrderConsumer {
 
     this.amqpConnection.publish('orders', 'order.created', {
       orderId: order.id,
-      totalPrice: 1200,
+      totalPrice: order.totalPrice,
       cardDetails: data.cardDetails,
     });
   }

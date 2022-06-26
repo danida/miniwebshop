@@ -1,6 +1,7 @@
 import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
 import { Module } from '@nestjs/common';
 import { CreateOrderConsumer, CompleteOrderConsumer } from './consumers';
+import { CancelOrderConsumer } from './consumers/cancel-order';
 import { OrderService, PrismaService } from './services';
 
 @Module({
@@ -33,13 +34,15 @@ import { OrderService, PrismaService } from './services';
         },
       ],
       prefetchCount: 1,
-      uri: 'amqp://rabbitmq:5672',
+      uri: `amqp://${process.env.RABBITMQ_HOST}:${
+        process.env.RABBITMQ_PORT || 5672
+      }`,
     }),
   ],
   providers: [
     PrismaService,
     OrderService,
-    ...[CreateOrderConsumer, CompleteOrderConsumer],
+    ...[CreateOrderConsumer, CompleteOrderConsumer, CancelOrderConsumer],
   ],
 })
 export class AppModule {}

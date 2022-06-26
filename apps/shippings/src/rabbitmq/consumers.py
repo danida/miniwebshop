@@ -21,5 +21,8 @@ def create_shipping_consumer(body, ack, channel: BlockingChannel):
         "orderId": body["orderId"],
         "shippingId": shipping.to_dict()["id"],
     }))
+    # channel.basic_publish("shippings", "shipping.failed", json.dumps({
+    #     "orderId": body["orderId"],
+    # }))
 
     ack()

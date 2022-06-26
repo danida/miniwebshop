@@ -3,29 +3,66 @@ services:
   rabbitmq:
     image: rabbitmq:3-management-alpine
     ports:
-        - 5672:5672
-        - 15672:15672
+      - 5672:5672
+      - 15672:15672
+
+  carts:
+    image: node:lts
+    depends_on:
+      - rabbitmq
+    volumes:
+      - ./apps/carts:/app
+    environment:
+      - RABBITMQ_HOST=${RABBITMQ_HOST}
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
+    ports:
+      - 3000:3000
+    command: sh -c "cd /app && node index.js"
 
   orders:
     image: node:lts
     depends_on:
       - rabbitmq
     volumes:
-      - ./apps/orders:/
+      - ./apps/orders:/app
+    environment:
+      - RABBITMQ_HOST=${RABBITMQ_HOST}
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
     command: sh -c "cd /app && npm run start:dev"
-      
+
   payments:
     image: php:8.1.7-fpm
     depends_on:
       - rabbitmq
     volumes:
       - ./apps/payments:/app
+    environment:
+      - RABBITMQ_HOST=${RABBITMQ_HOST}
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
     command: sh -c "cd /app && php artisan rabbitmq:consume"
-      
+
   shippings:
     image: python:3.9-slim-buster
     depends_on:
       - rabbitmq
     volumes:
       - ./apps/shippings:/app
+    environment:
+      - RABBITMQ_HOST=${RABBITMQ_HOST}
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
     command: sh -c "cd /app && . ./venv/bin/activate && pip3 install -r ./requirements.txt && python3 ./src/main.py"
+
+  mails:
+    build: ./apps/mails
+    depends_on:
+      - rabbitmq
+    environment:
+      SPRING_APPLICATION_JSON: '{
+        "spring.rabbitmq.host": "${RABBITMQ_HOST}",
+        "spring.rabbitmq.port": "${RABBITMQ_PORT}",
+
+        "spring.mail.host": "${MAIL_HOST}",
+        "spring.mail.port": ${MAIL_PORt},
+        "spring.mail.username": "${MAIL_USERNAME}",
+        "spring.mail.password": "${MAIL_PASSWORD}"
+        }'
