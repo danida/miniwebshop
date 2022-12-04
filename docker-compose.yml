@@ -1,62 +1,55 @@
 version: "3.2"
 services:
   rabbitmq:
-    image: rabbitmq:3-management-alpine
+    image: rabbitmq:3-management
     ports:
       - 5672:5672
       - 15672:15672
 
   carts:
-    image: node:lts
+    build: ./apps/carts
     depends_on:
       - rabbitmq
-    volumes:
-      - ./apps/carts:/app
     environment:
       - RABBITMQ_HOST=${RABBITMQ_HOST}
       - RABBITMQ_PORT=${RABBITMQ_PORT}
     ports:
-      - 3000:3000
-    command: sh -c "cd /app && node index.js"
+      - 8833:3000
 
   orders:
-    image: node:lts
+    build: ./apps/orders
     depends_on:
       - rabbitmq
-    volumes:
-      - ./apps/orders:/app
     environment:
       - RABBITMQ_HOST=${RABBITMQ_HOST}
       - RABBITMQ_PORT=${RABBITMQ_PORT}
-    command: sh -c "cd /app && npm run start:dev"
 
   payments:
-    image: php:8.1.7-fpm
+    build: ./apps/payments
     depends_on:
       - rabbitmq
-    volumes:
-      - ./apps/payments:/app
     environment:
       - RABBITMQ_HOST=${RABBITMQ_HOST}
       - RABBITMQ_PORT=${RABBITMQ_PORT}
-    command: sh -c "cd /app && php artisan rabbitmq:consume"
 
   shippings:
-    image: python:3.9-slim-buster
+    build: ./apps/shippings
     depends_on:
       - rabbitmq
-    volumes:
-      - ./apps/shippings:/app
     environment:
       - RABBITMQ_HOST=${RABBITMQ_HOST}
       - RABBITMQ_PORT=${RABBITMQ_PORT}
-    command: sh -c "cd /app && . ./venv/bin/activate && pip3 install -r ./requirements.txt && python3 ./src/main.py"
 
   mails:
-    build: ./apps/mails
+    build:
+      context: ./apps/mails
+      args:
+        - MAIL_HOST=${MAIL_HOST}
+        - MAIL_PORT=${MAIL_PORT}
+        - MAIL_USERNAME=${MAIL_USERNAME}
+        - MAIL_PASSWORD=${MAIL_PASSWORD}
     depends_on:
       - rabbitmq
-    environment:
       SPRING_APPLICATION_JSON: '{
         "spring.rabbitmq.host": "${RABBITMQ_HOST}",
         "spring.rabbitmq.port": "${RABBITMQ_PORT}",
@@ -65,4 +58,4 @@ services:
         "spring.mail.port": ${MAIL_PORt},
         "spring.mail.username": "${MAIL_USERNAME}",
         "spring.mail.password": "${MAIL_PASSWORD}"
-        }'
+      }'
