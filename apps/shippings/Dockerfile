@@ -5,4 +5,4 @@ COPY . .
 RUN pip install --upgrade pip
 RUN pip install -r ./requirements.txt
 
-CMD sleep 10 && python3 ./src/main.py
+CMD python3 ./src/main.py

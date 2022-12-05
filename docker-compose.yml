@@ -8,6 +8,7 @@ services:
 
   carts:
     build: ./apps/carts
+    restart: on-failure
     depends_on:
       - rabbitmq
     environment:
@@ -18,6 +19,7 @@ services:
 
   orders:
     build: ./apps/orders
+    restart: on-failure
     depends_on:
       - rabbitmq
     environment:
@@ -26,6 +28,7 @@ services:
 
   payments:
     build: ./apps/payments
+    restart: on-failure
     depends_on:
       - rabbitmq
     environment:
@@ -34,28 +37,9 @@ services:
 
   shippings:
     build: ./apps/shippings
+    restart: on-failure
     depends_on:
       - rabbitmq
     environment:
       - RABBITMQ_HOST=${RABBITMQ_HOST}
       - RABBITMQ_PORT=${RABBITMQ_PORT}
-
-  mails:
-    build:
-      context: ./apps/mails
-      args:
-        - MAIL_HOST=${MAIL_HOST}
-        - MAIL_PORT=${MAIL_PORT}
-        - MAIL_USERNAME=${MAIL_USERNAME}
-        - MAIL_PASSWORD=${MAIL_PASSWORD}
-    depends_on:
-      - rabbitmq
-      SPRING_APPLICATION_JSON: '{
-        "spring.rabbitmq.host": "${RABBITMQ_HOST}",
-        "spring.rabbitmq.port": "${RABBITMQ_PORT}",
-
-        "spring.mail.host": "${MAIL_HOST}",
-        "spring.mail.port": ${MAIL_PORt},
-        "spring.mail.username": "${MAIL_USERNAME}",
-        "spring.mail.password": "${MAIL_PASSWORD}"
-      }'
